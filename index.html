@@ -31,11 +31,11 @@ body{
   color:var(--texto);
   font-family:'Cormorant Garamond',Georgia,serif;
   font-size:18px;
-  overscroll-behavior:none;overflow-x:hidden;
+  overscroll-behavior:none;
   -webkit-user-select:none;user-select:none;
 }
 button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
-#app{max-width:600px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+#app{max-width:600px;margin:0 auto;overflow-x:hidden;min-height:100%;display:flex;flex-direction:column;
   padding:env(safe-area-inset-top) 14px calc(12px + env(safe-area-inset-bottom))}
 .tela{display:none;flex:1;flex-direction:column;animation:entra .28s ease}
 .tela.ativa{display:flex}
@@ -144,16 +144,19 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 .acao[disabled]{opacity:.4}
 
 /* modal */
-.veu{position:fixed;inset:0;background:rgba(6,12,24,.78);backdrop-filter:blur(4px);
-  display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.veu{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,12,24,.92);
+  display:none;align-items:center;justify-content:center;padding:20px;z-index:200;
+  pointer-events:auto;-webkit-overflow-scrolling:touch}
+.veu button{touch-action:manipulation}
 .veu.ativo{display:flex;animation:entra .25s}
-.modal{max-width:380px;width:100%;background:linear-gradient(180deg,#17274A,#101D36);
+.modal{position:relative;z-index:1;pointer-events:auto;max-width:380px;width:100%;background:linear-gradient(180deg,#17274A,#101D36);
   border:1px solid var(--borda);border-radius:22px;padding:26px 22px;text-align:center;box-shadow:var(--sombra)}
 .modal h2{font-family:'Cinzel',serif;color:var(--gold2);font-size:20px;letter-spacing:.06em;margin:0 0 4px}
 .modal .revelada{font-family:'Cinzel',serif;font-size:26px;letter-spacing:.16em;color:var(--creme);margin:14px 0 10px}
 .modal .verso{font-style:italic;color:var(--suave);font-size:16px;line-height:1.45;margin:10px 0 18px}
 .modal .premio{color:var(--gold2);font-family:'Cinzel',serif;font-size:14px;letter-spacing:.05em}
-.btn{display:block;width:100%;padding:13px;border-radius:14px;font-family:'Cinzel',serif;font-weight:600;
+.btn{display:block;width:100%;padding:15px 13px;touch-action:manipulation;pointer-events:auto;
+  -webkit-appearance:none;appearance:none;border-radius:14px;font-family:'Cinzel',serif;font-weight:600;
   letter-spacing:.05em;font-size:15px;margin-top:10px;
   background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--navy);box-shadow:0 4px 14px rgba(201,162,39,.25)}
 .btn.vazado{background:none;border:1px solid var(--borda);color:var(--creme);box-shadow:none}
@@ -190,7 +193,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
   <section class="tela" id="tela-fases">
     <div class="topo">
       <button class="btn-icone" id="voltar-mundos" aria-label="Voltar">‹</button>
-      <h1 id="titulo-mundo">Mundo<span class="sub" id="sub-mundo"></span></h1>
+      <h1 id="titulo-mundo">Assunto<span class="sub" id="sub-mundo"></span></h1>
       <div class="moedas"><span class="disco"></span><span id="moedas-2">0</span></div>
     </div>
     <div class="lista" id="lista-fases"></div>
@@ -238,7 +241,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
     <div class="verso" id="fim-verso"></div>
     <div class="premio" id="fim-premio"></div>
     <button class="btn" id="fim-proxima">Próxima fase</button>
-    <button class="btn vazado" id="fim-mapa">Voltar ao mapa</button>
+    <button class="btn vazado" id="fim-mapa">Voltar à lista</button>
   </div>
 </div>
 
@@ -867,10 +870,10 @@ function pintaMundos(){
     b.className='cartao'+(lib?'':' travado')+(ok===tot?' completo':'');
     b.innerHTML=`<span class="num">${lib?(i+1):'✕'}</span>
       <span class="info"><span class="nome">${m.nome}</span>
-      <span class="desc">${lib?(m.auto?m.sub+' \u2014 sem fim':m.sub):'Conclua uma fase do mundo anterior'}</span>
+      <span class="desc">${lib?(m.auto?m.sub+' \u2014 sem fim':m.sub):'Conclua uma fase do assunto anterior'}</span>
       <span class="barra"><i style="width:${tot?ok/tot*100:0}%"></i></span></span>
       <span class="selo">${ok}/${tot}</span>`;
-    b.onclick=()=>{ if(!lib){avisa('Termine ao menos uma fase do mundo anterior.');return} somToque();abreMundo(i) };
+    b.onclick=()=>{ if(!lib){avisa('Termine ao menos uma fase do assunto anterior.');return} somToque();abreMundo(i) };
     el.appendChild(b);
   });
   moedas();
@@ -1069,15 +1072,24 @@ function fimDeFase(){
   $('fim-premio').textContent='+ '+GANHO_FASE+' moedas';
   if(MUNDOS[J.m].auto && J.f>=MUNDOS[J.m].fases.length-1) novaFase(1);
   const ultima = J.f>=MUNDOS[J.m].fases.length-1;
-  $('fim-proxima').textContent = ultima?'Escolher outro mundo':(MUNDOS[J.m].auto?'Jogar a nova fase':'Próxima fase');
+  $('fim-proxima').textContent = ultima?'Escolher outro assunto':(MUNDOS[J.m].auto?'Jogar a nova fase':'Próxima fase');
   $('veu-fim').classList.add('ativo');
 }
 
 /* ================= eventos ================= */
+/* iOS: alguns aparelhos engolem o "click" dentro de sobreposicoes.
+   Ligamos click e touchend, com trava para nao disparar duas vezes. */
+function liga(el,fn){
+  if(!el)return; let ultimo=0;
+  const dispara=e=>{ const agora=Date.now(); if(agora-ultimo<700)return; ultimo=agora;
+    if(e.cancelable)e.preventDefault(); fn(e) };
+  el.addEventListener('touchend',dispara,{passive:false});
+  el.addEventListener('click',dispara);
+}
 $('btn-ajustes').onclick=()=>{$('aj-som').textContent='Som: '+(S.som?'ligado':'desligado');$('veu-ajustes').classList.add('ativo')};
-$('aj-fechar').onclick=()=>$('veu-ajustes').classList.remove('ativo');
-$('aj-som').onclick=function(){S.som=!S.som;gravar();this.textContent='Som: '+(S.som?'ligado':'desligado')};
-$('aj-zerar').onclick=()=>{ if(confirm('Apagar todo o progresso e voltar ao início?')){S={moedas:300,prog:{},som:S.som,geradas:[]};sincronizaAuto();gravar();pintaMundos();$('veu-ajustes').classList.remove('ativo');avisa('Progresso zerado.')} };
+liga($('aj-fechar'),()=>$('veu-ajustes').classList.remove('ativo'));
+liga($('aj-som'),()=>{S.som=!S.som;gravar();$('aj-som').textContent='Som: '+(S.som?'ligado':'desligado')});
+liga($('aj-zerar'),()=>{ if(confirm('Apagar todo o progresso e voltar ao início?')){S={moedas:300,prog:{},som:S.som,geradas:[]};sincronizaAuto();gravar();pintaMundos();$('veu-ajustes').classList.remove('ativo');avisa('Progresso zerado.')} });
 $('voltar-mundos').onclick=()=>{somToque();pintaMundos();tela('tela-mundos')};
 $('voltar-fases').onclick=()=>{somToque();abreMundo(J?J.m:mundoAtual)};
 $('dica-ant').onclick=()=>navega(-1);
@@ -1086,12 +1098,12 @@ $('btn-apagar').onclick=apagaUltima;
 $('btn-embaralhar').onclick=()=>{const L=J.linhas[J.ativa];if(L.ok)return;limpaLinha(L);embaralha(L.banco);pintaGrade();pintaBanco();somToque()};
 $('btn-letra').onclick=dicaLetra;
 $('btn-palavra').onclick=dicaPalavra;
-$('fim-mapa').onclick=()=>{$('veu-fim').classList.remove('ativo');abreMundo(J.m)};
-$('fim-proxima').onclick=()=>{
+liga($('fim-mapa'),()=>{$('veu-fim').classList.remove('ativo');abreMundo(J.m)});
+liga($('fim-proxima'),()=>{
   $('veu-fim').classList.remove('ativo');
   if(J.f<MUNDOS[J.m].fases.length-1) abreFase(J.m,J.f+1);
   else { pintaMundos();tela('tela-mundos') }
-};
+});
 
 /* teclado físico (desktop) */
 document.addEventListener('keydown',e=>{
