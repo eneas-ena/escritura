@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Banco de Palavras — administração</title>
+<meta name="theme-color" content="#0F1B33">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0F1B33;--gold:#C9A227;--gold2:#E7C65A;--creme:#F5EFE0;--suave:rgba(245,239,224,.55);--borda:rgba(201,162,39,.28)}
+*{box-sizing:border-box}
+body{margin:0;padding:0 14px 40px;background:radial-gradient(120% 80% at 50% 0%,#1A2C52,#0F1B33 45%,#0E1A2F);
+  color:var(--creme);font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;min-height:100vh}
+.caixa{max-width:720px;margin:0 auto}
+h1{font-family:'Cinzel',serif;color:var(--gold2);font-size:21px;letter-spacing:.05em;margin:26px 0 2px}
+.sub{font-style:italic;color:var(--suave);margin-bottom:20px}
+label{display:block;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.12em;color:var(--suave);margin:14px 0 6px}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;background:rgba(255,255,255,.06);
+  border:1px solid var(--borda);color:var(--creme);font-family:inherit;font-size:17px}
+.linha{display:flex;gap:10px}.linha>*{flex:1}
+button{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.04em;font-size:15px;padding:13px;border:0;
+  border-radius:13px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--navy);width:100%;margin-top:16px;cursor:pointer}
+button.vazado{background:none;border:1px solid var(--borda);color:var(--creme)}
+button:disabled{opacity:.5;cursor:default}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--borda);border-radius:13px;margin-bottom:9px;
+  background:rgba(255,255,255,.04)}
+.item input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;margin-top:3px;accent-color:var(--gold)}
+.item .p{font-family:'Cinzel',serif;color:var(--gold2);font-size:16px}
+.item .d{font-size:17px;line-height:1.3}
+.item .d[contenteditable]{outline:none;border-bottom:1px dashed rgba(201,162,39,.35);padding-bottom:2px}
+.recusada{opacity:.55;border-style:dashed}
+.recusada .motivo{font-size:14px;color:#E0A0A0;font-style:italic}
+.aviso{padding:12px 14px;border-radius:12px;background:rgba(201,162,39,.12);border:1px solid var(--borda);margin:16px 0;font-size:16px}
+.custo{font-size:15px;color:var(--suave);font-style:italic;text-align:center;margin-top:10px}
+h2{font-family:'Cinzel',serif;font-size:14px;letter-spacing:.1em;color:var(--suave);margin:26px 0 10px}
+</style>
+</head>
+<body>
+<div class="caixa">
+  <h1>Banco de Palavras</h1>
+  <div class="sub">Gerar com IA, revisar e aprovar. Só o que você aprovar entra no jogo.</div>
+
+  <div id="config">
+    <label>PIN de administração</label>
+    <input id="pin" type="password" inputmode="numeric" placeholder="informe o PIN">
+    <label>Tema das novas palavras</label>
+    <input id="tema" value="conhecimento geral da Bíblia" placeholder="ex.: profetas menores, festas de Israel">
+    <div class="linha">
+      <div>
+        <label>Quantidade</label>
+        <select id="qtd"><option>10</option><option selected>20</option><option>30</option><option>40</option></select>
+      </div>
+      <div>
+        <label>No banco</label>
+        <input id="total" value="—" readonly>
+      </div>
+    </div>
+    <button id="btn-gerar">Gerar palavras</button>
+  </div>
+
+  <div id="saida"></div>
+</div>
+
+<script>
+/* ==== Worker de geração ==== */
+const WORKER = 'https://palavras-biblia.eneaspr.workers.dev';
+
+const $=id=>document.getElementById(id);
+const pin=()=>$('pin').value.trim();
+
+async function chama(rota, corpo){
+  const r = await fetch(WORKER+rota, {method:'POST',headers:{'content-type':'application/json'},
+    body: JSON.stringify(Object.assign({pin:pin()}, corpo))});
+  return r.json();
+}
+async function contar(){
+  if(!pin())return;
+  try{ const r=await fetch(WORKER+'/total?pin='+encodeURIComponent(pin()));
+       const d=await r.json(); $('total').value = d.total!=null? d.total : (d.erro||'—');
+  }catch(e){ $('total').value='sem conexão' }
+}
+$('pin').addEventListener('change',contar);
+
+$('btn-gerar').onclick=async()=>{
+  if(!pin()){alert('Informe o PIN.');return}
+  const b=$('btn-gerar'); b.disabled=true; b.textContent='Gerando…';
+  $('saida').innerHTML='';
+  try{
+    const d=await chama('/gerar',{tema:$('tema').value,quantidade:+$('qtd').value});
+    if(d.erro){ $('saida').innerHTML='<div class="aviso">'+d.erro+(d.bruto?'<br><small>'+d.bruto+'</small>':'')+'</div>'; }
+    else mostra(d);
+  }catch(e){ $('saida').innerHTML='<div class="aviso">Não consegui falar com o Worker. Confira a URL.</div>' }
+  b.disabled=false; b.textContent='Gerar palavras';
+};
+
+function mostra(d){
+  let h='<h2>APROVADAS PARA REVISÃO ('+d.validas.length+')</h2>';
+  if(!d.validas.length) h+='<div class="aviso">Nenhuma passou na validação. Tente outro tema.</div>';
+  d.validas.forEach((w,i)=>{
+    h+=`<div class="item"><input type="checkbox" checked data-i="${i}">
+      <div><div class="p">${w.p} <span style="color:var(--suave);font-size:13px">(${w.p.length} letras)</span></div>
+      <div class="d" contenteditable data-i="${i}">${w.d}</div></div></div>`;
+  });
+  if(d.recusadas.length){
+    h+='<h2>RECUSADAS AUTOMATICAMENTE ('+d.recusadas.length+')</h2>';
+    d.recusadas.forEach(w=>{ h+=`<div class="item recusada"><div style="width:22px">✕</div>
+      <div><div class="p">${w.p||'(vazio)'}</div><div class="d">${w.d||''}</div>
+      <div class="motivo">${w.motivo}</div></div></div>` });
+  }
+  if(d.validas.length) h+='<button id="btn-salvar">Salvar as marcadas no banco</button>';
+  h+=`<div class="custo">custo desta geração: US$ ${d.custo.usd} &nbsp;·&nbsp; ${d.custo.entrada} tokens de entrada, ${d.custo.saida} de saída</div>`;
+  $('saida').innerHTML=h;
+  window._validas=d.validas;
+  const bs=$('btn-salvar'); if(bs) bs.onclick=salvar;
+}
+
+async function salvar(){
+  const b=$('btn-salvar'); b.disabled=true; b.textContent='Salvando…';
+  document.querySelectorAll('.d[contenteditable]').forEach(el=>{ window._validas[el.dataset.i].d=el.textContent.trim() });
+  const escolhidas=[...document.querySelectorAll('input[type=checkbox]:checked')].map(c=>window._validas[c.dataset.i]);
+  if(!escolhidas.length){ alert('Marque ao menos uma.'); b.disabled=false; b.textContent='Salvar as marcadas no banco'; return }
+  const d=await chama('/salvar',{palavras:escolhidas,tema:$('tema').value});
+  $('saida').innerHTML='<div class="aviso">'+(d.erro? d.erro : d.salvas+' palavra(s) salvas de '+d.enviadas+' enviadas. Já valem para as próximas fases geradas no app.')+'</div>';
+  contar();
+}
+</script>
+</body>
+</html>

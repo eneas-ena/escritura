@@ -760,11 +760,12 @@ const SECRETAS=[
 MUNDOS.push({nome:'Conhecimento Geral da Bíblia',sub:'fases criadas pelo próprio app',auto:true,fases:[]});
 const AUTO=MUNDOS.length-1;
 
-/* ====== SUPABASE (opcional): amplia o banco de palavras ======
-   Preencha as duas linhas abaixo com o seu projeto. Enquanto
-   estiverem vazias, o app usa apenas o banco local — e funciona
-   normalmente, sem nenhuma chamada de rede.                     */
-const SUPA={url:'',key:''};
+/* ====== SUPABASE: amplia o banco de palavras ======
+   Chave publishable (pública por natureza; a RLS é quem protege).
+   Se a tabela ainda não existir, o app ignora e segue com o
+   banco local, sem erro.                                        */
+const SUPA={url:'https://ghjbljypxksubmcsvaig.supabase.co',
+            key:'sb_publishable_qXCYqg1WdmelY9D1mptZXg_U8NdoKby'};
 let bancoExtra=[];
 function bancoTotal(){return bancoExtra.length?BANCO_LOCAL.concat(bancoExtra):BANCO_LOCAL}
 async function carregaBanco(){
