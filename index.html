@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Palavras da Escritura</title>
+<meta name="description" content="Jogo de palavras cruzadas bíblicas no estilo CodyCross.">
+<meta name="theme-color" content="#0F1B33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Escritura">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='38' fill='%230F1B33'/%3E%3Ctext x='90' y='122' font-family='Georgia,serif' font-size='96' fill='%23C9A227' text-anchor='middle'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1B33'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='36' fill='%23C9A227' text-anchor='middle'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F1B33; --navy2:#0E1A2F; --navy3:#16264A;
+  --gold:#C9A227; --gold2:#E7C65A; --gold-esc:#8C6E12;
+  --creme:#F5EFE0; --texto:#EAE3D2; --suave:rgba(245,239,224,.55);
+  --ok:#2E7D5B; --erro:#B3453A;
+  --borda:rgba(201,162,39,.28);
+  --sombra:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:radial-gradient(120% 80% at 50% 0%, #1A2C52 0%, var(--navy) 45%, var(--navy2) 100%);
+  color:var(--texto);
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:18px;
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+}
+button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#app{max-width:600px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) 14px calc(12px + env(safe-area-inset-bottom))}
+.tela{display:none;flex:1;flex-direction:column;animation:entra .28s ease}
+.tela.ativa{display:flex}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- topo ---------- */
+.topo{display:flex;align-items:center;gap:10px;padding:14px 2px 10px}
+.topo h1{font-family:'Cinzel',serif;font-size:19px;letter-spacing:.06em;margin:0;flex:1;
+  color:var(--gold2);font-weight:600;line-height:1.2}
+.topo .sub{display:block;font-family:'Cormorant Garamond',serif;font-size:13px;
+  letter-spacing:.02em;color:var(--suave);font-style:italic}
+.btn-icone{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(255,255,255,.06);border:1px solid var(--borda);font-size:18px;color:var(--gold2);
+  transition:.15s}
+.btn-icone:active{transform:scale(.92)}
+.moedas{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;
+  background:rgba(201,162,39,.12);border:1px solid var(--borda);font-size:15px;color:var(--gold2);
+  font-family:'Cinzel',serif;font-weight:600}
+.moedas .disco{width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,var(--gold2),var(--gold-esc));box-shadow:0 0 8px rgba(201,162,39,.5)}
+
+/* ---------- capa ---------- */
+.capa{text-align:center;padding:34px 8px 22px}
+.capa .marca{font-family:'Cinzel',serif;font-size:30px;letter-spacing:.14em;color:var(--gold2);
+  font-weight:700;line-height:1.15;text-shadow:0 2px 18px rgba(201,162,39,.25)}
+.capa .lema{font-style:italic;color:var(--suave);margin-top:8px;font-size:17px}
+.filete{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:18px auto;width:70%}
+
+/* ---------- lista de mundos / fases ---------- */
+.lista{display:flex;flex-direction:column;gap:10px;padding-bottom:18px}
+.cartao{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  border:1px solid var(--borda);transition:.18s;text-align:left;width:100%}
+.cartao:active{transform:scale(.985)}
+.cartao .num{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;
+  font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--navy);
+  background:radial-gradient(circle at 35% 30%,var(--gold2),var(--gold));box-shadow:0 4px 14px rgba(201,162,39,.28)}
+.cartao.travado .num{background:rgba(255,255,255,.09);color:var(--suave);box-shadow:none}
+.cartao .info{flex:1;min-width:0}
+.cartao .nome{font-family:'Cinzel',serif;font-size:16px;color:var(--creme);letter-spacing:.03em;font-weight:600}
+.cartao .desc{font-size:15px;color:var(--suave);font-style:italic;margin-top:2px}
+.barra{height:5px;border-radius:4px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .5s}
+.cartao .selo{font-size:13px;color:var(--gold2);font-family:'Cinzel',serif;letter-spacing:.04em}
+.cartao.completo{border-color:rgba(201,162,39,.6)}
+
+/* ---------- tela de jogo ---------- */
+.palco{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.area-grade{overflow-x:auto;overflow-y:hidden;padding:6px 0 2px;-webkit-overflow-scrolling:touch}
+.grade{position:relative;margin:0 auto;display:flex;flex-direction:column;gap:4px;
+  --cell:clamp(21px, calc((100vw - 34px) / var(--cols)), 44px);
+  width:calc(var(--cell) * var(--cols))}
+.faixa-secreta{position:absolute;top:-4px;bottom:-4px;width:var(--cell);border-radius:8px;
+  background:rgba(201,162,39,.1);border:1px dashed rgba(201,162,39,.45);pointer-events:none}
+.linha{display:grid;grid-template-columns:repeat(var(--cols),var(--cell));gap:0;height:var(--cell)}
+.cel{width:var(--cell);height:var(--cell);display:grid;place-items:center;
+  font-family:'Cinzel',serif;font-weight:600;
+  font-size:calc(var(--cell) * .5);color:var(--creme);
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:6px;margin:1px;transition:.15s}
+.cel.secreta{border-color:rgba(201,162,39,.7)}
+.linha.ativa .cel{background:rgba(255,255,255,.14);border-color:rgba(201,162,39,.45)}
+.linha.ativa .cel.secreta{background:rgba(201,162,39,.22)}
+.linha.resolvida .cel{background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--navy);
+  border-color:var(--gold);text-shadow:none}
+.cel.fixa{color:var(--gold2)}
+.linha.errou{animation:treme .38s}
+@keyframes treme{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.linha.acertou .cel{animation:brilha .5s}
+@keyframes brilha{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* palavra secreta */
+.secreta-box{text-align:center;padding:6px 0 2px}
+.secreta-box .rot{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.22em;color:var(--suave)}
+.secreta-letras{display:flex;justify-content:center;gap:4px;margin-top:6px;flex-wrap:wrap}
+.secreta-letras span{min-width:22px;height:26px;padding:0 3px;display:grid;place-items:center;border-radius:5px;
+  font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--navy);
+  background:rgba(255,255,255,.12)}
+.secreta-letras span.on{background:linear-gradient(180deg,var(--gold2),var(--gold))}
+.secreta-letras span:not(.on){color:transparent}
+
+/* dica */
+.dica-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);
+  border:1px solid var(--borda);border-radius:14px;padding:10px 8px;margin:4px 0}
+.dica-box .nav{width:30px;height:30px;flex:0 0 30px;border-radius:9px;display:grid;place-items:center;
+  color:var(--gold2);background:rgba(255,255,255,.06);font-size:15px}
+.dica-texto{flex:1;text-align:center;font-size:17px;line-height:1.3;color:var(--creme);
+  min-height:44px;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.dica-texto b{color:var(--gold2);font-weight:600}
+
+/* teclado / banco de letras */
+.banco{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px 0 2px}
+.tecla{width:40px;height:44px;border-radius:11px;font-family:'Cinzel',serif;font-weight:700;font-size:18px;
+  color:var(--navy);background:linear-gradient(180deg,#F0E4BC,#D9BE6B);
+  box-shadow:0 3px 0 var(--gold-esc);transition:.1s}
+.tecla:active{transform:translateY(3px);box-shadow:0 0 0 var(--gold-esc)}
+.tecla.usada{opacity:.22;pointer-events:none;box-shadow:none}
+.acoes{display:flex;gap:8px;justify-content:center;padding:6px 0 2px}
+.acao{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid var(--borda);font-size:14px;color:var(--creme);
+  font-family:'Cinzel',serif;letter-spacing:.02em}
+.acao:active{transform:scale(.95)}
+.acao .preco{color:var(--gold2);font-size:13px}
+.acao[disabled]{opacity:.4}
+
+/* modal */
+.veu{position:fixed;inset:0;background:rgba(6,12,24,.78);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.veu.ativo{display:flex;animation:entra .25s}
+.modal{max-width:380px;width:100%;background:linear-gradient(180deg,#17274A,#101D36);
+  border:1px solid var(--borda);border-radius:22px;padding:26px 22px;text-align:center;box-shadow:var(--sombra)}
+.modal h2{font-family:'Cinzel',serif;color:var(--gold2);font-size:20px;letter-spacing:.06em;margin:0 0 4px}
+.modal .revelada{font-family:'Cinzel',serif;font-size:26px;letter-spacing:.16em;color:var(--creme);margin:14px 0 10px}
+.modal .verso{font-style:italic;color:var(--suave);font-size:16px;line-height:1.45;margin:10px 0 18px}
+.modal .premio{color:var(--gold2);font-family:'Cinzel',serif;font-size:14px;letter-spacing:.05em}
+.btn{display:block;width:100%;padding:13px;border-radius:14px;font-family:'Cinzel',serif;font-weight:600;
+  letter-spacing:.05em;font-size:15px;margin-top:10px;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--navy);box-shadow:0 4px 14px rgba(201,162,39,.25)}
+.btn.vazado{background:none;border:1px solid var(--borda);color:var(--creme);box-shadow:none}
+.btn:active{transform:scale(.98)}
+.aviso{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(15,27,51,.96);
+  border:1px solid var(--borda);color:var(--creme);padding:10px 18px;border-radius:14px;font-size:15px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88vw;text-align:center}
+.aviso.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.rodape{text-align:center;font-size:12px;color:rgba(245,239,224,.3);padding:14px 0 4px;font-style:italic}
+@media (min-width:620px){ .grade{--cell:clamp(24px,calc(566px / var(--cols)),44px)} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ========== TELA 1: MUNDOS ========== -->
+  <section class="tela ativa" id="tela-mundos">
+    <div class="topo">
+      <h1>Palavras da Escritura<span class="sub">cruzadas bíblicas</span></h1>
+      <div class="moedas"><span class="disco"></span><span id="moedas-1">0</span></div>
+      <button class="btn-icone" id="btn-ajustes" aria-label="Ajustes">⚙</button>
+    </div>
+    <div class="capa">
+      <div class="marca">✦</div>
+      <div class="lema">“Lâmpada para os meus pés é a tua palavra.”</div>
+      <div class="filete"></div>
+    </div>
+    <div class="lista" id="lista-mundos"></div>
+    <div class="rodape">Respostas sempre em letras maiúsculas, sem acentos.</div>
+  </section>
+
+  <!-- ========== TELA 2: FASES ========== -->
+  <section class="tela" id="tela-fases">
+    <div class="topo">
+      <button class="btn-icone" id="voltar-mundos" aria-label="Voltar">‹</button>
+      <h1 id="titulo-mundo">Mundo<span class="sub" id="sub-mundo"></span></h1>
+      <div class="moedas"><span class="disco"></span><span id="moedas-2">0</span></div>
+    </div>
+    <div class="lista" id="lista-fases"></div>
+  </section>
+
+  <!-- ========== TELA 3: JOGO ========== -->
+  <section class="tela" id="tela-jogo">
+    <div class="topo">
+      <button class="btn-icone" id="voltar-fases" aria-label="Voltar">‹</button>
+      <h1 id="titulo-fase">Fase<span class="sub" id="sub-fase"></span></h1>
+      <div class="moedas"><span class="disco"></span><span id="moedas-3">0</span></div>
+    </div>
+    <div class="palco">
+      <div>
+        <div class="area-grade"><div class="grade" id="grade"></div></div>
+        <div class="secreta-box">
+          <div class="rot">PALAVRA SECRETA</div>
+          <div class="secreta-letras" id="secreta"></div>
+        </div>
+      </div>
+      <div>
+        <div class="dica-box">
+          <button class="nav" id="dica-ant" aria-label="Definição anterior">▲</button>
+          <div class="dica-texto" id="dica-texto"></div>
+          <button class="nav" id="dica-prox" aria-label="Próxima definição">▼</button>
+        </div>
+        <div class="banco" id="banco"></div>
+        <div class="acoes">
+          <button class="acao" id="btn-apagar">⌫ Apagar</button>
+          <button class="acao" id="btn-embaralhar">⇄ Embaralhar</button>
+          <button class="acao" id="btn-letra">Revelar letra <span class="preco">30</span></button>
+          <button class="acao" id="btn-palavra">Palavra <span class="preco">90</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- modais -->
+<div class="veu" id="veu-fim">
+  <div class="modal">
+    <h2>Fase concluída</h2>
+    <div class="rot" style="font-size:11px;letter-spacing:.2em;color:var(--suave)">PALAVRA SECRETA</div>
+    <div class="revelada" id="fim-palavra"></div>
+    <div class="verso" id="fim-verso"></div>
+    <div class="premio" id="fim-premio"></div>
+    <button class="btn" id="fim-proxima">Próxima fase</button>
+    <button class="btn vazado" id="fim-mapa">Voltar ao mapa</button>
+  </div>
+</div>
+
+<div class="veu" id="veu-ajustes">
+  <div class="modal">
+    <h2>Ajustes</h2>
+    <div class="verso">Seu progresso fica salvo neste aparelho.</div>
+    <button class="btn vazado" id="aj-som">Som: ligado</button>
+    <button class="btn vazado" id="aj-zerar">Zerar todo o progresso</button>
+    <button class="btn" id="aj-fechar">Fechar</button>
+  </div>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<script>
+/* ============================================================
+   PALAVRAS DA ESCRITURA — cruzadas bíblicas estilo CodyCross
+   ------------------------------------------------------------
+   COMO ACRESCENTAR CONTEÚDO:
+   Cada fase tem uma "secreta" (palavra vertical) e uma lista de
+   linhas. Em cada linha: r = resposta (MAIÚSCULA, sem acentos),
+   i = posição (começando em 0) da letra que entra na palavra
+   secreta, d = definição. A 1ª linha dá a 1ª letra da secreta,
+   a 2ª linha a 2ª letra, e assim por diante.
+   Ex.: secreta "SAL" -> linhas com r:'SAUL',i:0 / r:'HARPA',i:1 / r:'BELEM',i:2
+   ============================================================ */
+const MUNDOS = [
+{ nome:'No Princípio', sub:'Gênesis', fases:[
+  { nome:'A Criação e o Éden', secreta:'GENESIS',
+    verso:'“No princípio, criou Deus os céus e a terra.” (Gn 1.1)',
+    linhas:[
+      {r:'AGAR',i:1,d:'Serva egípcia de Sara e mãe de Ismael'},
+      {r:'NOE',i:2,d:'Construiu a arca por ordem de Deus'},
+      {r:'CANAA',i:2,d:'Terra prometida a Abraão e à sua descendência'},
+      {r:'EDEN',i:2,d:'Jardim onde Deus colocou o homem'},
+      {r:'ISAQUE',i:1,d:'O filho da promessa, nascido de Sara na velhice'},
+      {r:'ISRAEL',i:0,d:'Novo nome dado a Jacó depois da luta em Peniel'},
+      {r:'SARA',i:0,d:'Riu ao ouvir que teria um filho na velhice'}
+  ]},
+  { nome:'O Dilúvio', secreta:'DILUVIO',
+    verso:'“O meu arco tenho posto nas nuvens; será por sinal de concerto.” (Gn 9.13)',
+    linhas:[
+      {r:'ADAO',i:1,d:'O primeiro homem, formado do pó da terra'},
+      {r:'ISMAEL',i:0,d:'Filho de Abraão com a serva Agar'},
+      {r:'LIA',i:0,d:'Primeira esposa de Jacó, irmã de Raquel'},
+      {r:'JUDA',i:1,d:'Filho de Jacó, tribo do Leão e do cetro'},
+      {r:'VINHO',i:0,d:'Bebida que embriagou Noé depois do dilúvio'},
+      {r:'NINIVE',i:1,d:'Cidade edificada por Ninrode, na Assíria'},
+      {r:'OLIVEIRA',i:0,d:'Árvore de cuja folha a pomba trouxe um ramo'}
+  ]},
+  { nome:'O Pai da Fé', secreta:'ABRAAO',
+    verso:'“Far-te-ei uma grande nação, e abençoar-te-ei.” (Gn 12.2)',
+    linhas:[
+      {r:'ARCA',i:0,d:'Embarcação que salvou Noé, sua casa e os animais'},
+      {r:'BABEL',i:0,d:'Torre da confusão das línguas'},
+      {r:'RAQUEL',i:0,d:'Esposa amada de Jacó, mãe de José e Benjamim'},
+      {r:'ESAU',i:2,d:'Irmão gêmeo de Jacó, homem do campo'},
+      {r:'LABAO',i:1,d:'Sogro de Jacó, pai de Lia e de Raquel'},
+      {r:'JOSE',i:1,d:'Vendido pelos irmãos e exaltado no Egito'}
+  ]}
+]},
+
+{ nome:'Êxodo e a Lei', sub:'A saída do Egito', fases:[
+  { nome:'O Chamado de Moisés', secreta:'MOISES',
+    verso:'“EU SOU O QUE SOU.” (Êx 3.14)',
+    linhas:[
+      {r:'MANA',i:0,d:'Alimento que caía do céu no deserto'},
+      {r:'CORDEIRO',i:1,d:'Animal cujo sangue foi posto nos umbrais'},
+      {r:'SINAI',i:1,d:'Monte onde Israel recebeu os Dez Mandamentos'},
+      {r:'PASCOA',i:2,d:'Festa que lembra a libertação do Egito'},
+      {r:'EGITO',i:0,d:'Terra da escravidão de Israel'},
+      {r:'JOSUE',i:2,d:'Sucedeu Moisés e conduziu o povo a Canaã'}
+  ]},
+  { nome:'As Pragas e a Páscoa', secreta:'PRAGAS',
+    verso:'“Quando eu vir o sangue, passarei por cima de vós.” (Êx 12.13)',
+    linhas:[
+      {r:'PEDRA',i:0,d:'Moisés feriu esta rocha e dela saiu água'},
+      {r:'VERMELHO',i:2,d:'Mar que se abriu para a travessia do povo'},
+      {r:'ARAO',i:0,d:'Irmão de Moisés, o primeiro sumo sacerdote'},
+      {r:'GOSEN',i:0,d:'Região do Egito onde habitavam os hebreus'},
+      {r:'ARCA',i:3,d:'Objeto sagrado que guardava as tábuas da Lei'},
+      {r:'SABADO',i:0,d:'Sétimo dia, santificado para o descanso'}
+  ]},
+  { nome:'No Monte Sinai', secreta:'SINAI',
+    verso:'“Eu sou o Senhor, teu Deus, que te tirei da terra do Egito.” (Êx 20.2)',
+    linhas:[
+      {r:'SERPENTE',i:0,d:'De bronze, levantada por Moisés no deserto'},
+      {r:'ISRAEL',i:0,d:'Nome do povo escolhido por Deus'},
+      {r:'NILO',i:0,d:'Rio do Egito cujas águas viraram sangue'},
+      {r:'FARAO',i:1,d:'Rei do Egito que endureceu o coração'},
+      {r:'AZIMO',i:2,d:'Pão sem fermento comido na Páscoa'}
+  ]}
+]},
+
+{ nome:'Reis e Profetas', sub:'A voz de Deus em Israel', fases:[
+  { nome:'Fogo no Carmelo', secreta:'ELIAS',
+    verso:'“O Senhor é Deus! O Senhor é Deus!” (1Rs 18.39)',
+    linhas:[
+      {r:'JEZABEL',i:1,d:'Rainha ímpia, esposa do rei Acabe'},
+      {r:'ELISEU',i:1,d:'Recebeu porção dobrada do espírito do mestre'},
+      {r:'ISAIAS',i:0,d:'Profeta que anunciou o Emanuel e o Servo Sofredor'},
+      {r:'SALOMAO',i:1,d:'Rei que edificou o templo em Jerusalém'},
+      {r:'SAMUEL',i:0,d:'Juiz e profeta que ungiu Saul e Davi'}
+  ]},
+  { nome:'Vozes de Deus', secreta:'PROFETA',
+    verso:'“O Senhor Deus não fará coisa alguma sem revelar o seu segredo aos profetas.” (Am 3.7)',
+    linhas:[
+      {r:'PALACIO',i:0,d:'Residência real construída por Salomão'},
+      {r:'JEREMIAS',i:2,d:'Profeta chorão que anunciou o cativeiro de Judá'},
+      {r:'GOLIAS',i:1,d:'Gigante de Gate, morto por uma pedra'},
+      {r:'FOGO',i:0,d:'Desceu do céu sobre o altar no monte Carmelo'},
+      {r:'EZEQUIEL',i:0,d:'Profeta que viu o vale de ossos secos'},
+      {r:'TEMPLO',i:0,d:'Casa de Deus edificada em Jerusalém'},
+      {r:'ACABE',i:0,d:'Rei de Israel casado com Jezabel'}
+  ]},
+  { nome:'O Rei Pastor', secreta:'SALMO',
+    verso:'“O Senhor é o meu pastor; nada me faltará.” (Sl 23.1)',
+    linhas:[
+      {r:'SAUL',i:0,d:'Primeiro rei de Israel, da tribo de Benjamim'},
+      {r:'HARPA',i:1,d:'Instrumento tocado por Davi diante do rei'},
+      {r:'BELEM',i:2,d:'Cidade natal de Davi e, depois, de Jesus'},
+      {r:'SAMUEL',i:2,d:'Profeta que ungiu o jovem pastor como rei'},
+      {r:'SALOMAO',i:3,d:'Rei que pediu a Deus um coração sábio'}
+  ]}
+]},
+
+{ nome:'A Vida de Jesus', sub:'O Verbo entre nós', fases:[
+  { nome:'O Menino de Nazaré', secreta:'NAZARE',
+    verso:'“Na cidade de Davi, vos nasceu hoje o Salvador, que é Cristo, o Senhor.” (Lc 2.11)',
+    linhas:[
+      {r:'NATANAEL',i:0,d:'Verdadeiro israelita, chamado por Filipe'},
+      {r:'MARIA',i:1,d:'Mãe de Jesus, a jovem virgem de Nazaré'},
+      {r:'ZAQUEU',i:0,d:'Publicano baixinho que subiu numa figueira brava'},
+      {r:'CANA',i:1,d:'Cidade da Galileia onde Jesus fez o primeiro sinal'},
+      {r:'REDE',i:0,d:'Instrumento de trabalho dos discípulos pescadores'},
+      {r:'DESERTO',i:1,d:'Lugar onde Jesus jejuou quarenta dias'}
+  ]},
+  { nome:'O Messias Prometido', secreta:'MESSIAS',
+    verso:'“E o Verbo se fez carne e habitou entre nós.” (Jo 1.14)',
+    linhas:[
+      {r:'MARIA',i:0,d:'A quem o anjo Gabriel anunciou o nascimento'},
+      {r:'BELEM',i:3,d:'Pequena cidade profetizada por Miqueias'},
+      {r:'SIMAO',i:0,d:'O cireneu que ajudou a levar a cruz'},
+      {r:'PASTOR',i:2,d:'“Eu sou o bom ___; dou a minha vida pelas ovelhas”'},
+      {r:'OLIVEIRAS',i:2,d:'Monte de onde Jesus subiu ao céu'},
+      {r:'PILATOS',i:3,d:'Governador romano que lavou as mãos'},
+      {r:'SENHOR',i:0,d:'“Meu ___ e meu Deus!”, exclamou Tomé'}
+  ]},
+  { nome:'A Cruz e o Sepulcro', secreta:'CRISTO',
+    verso:'“Não está aqui, mas ressuscitou.” (Lc 24.6)',
+    linhas:[
+      {r:'CRUZ',i:0,d:'Madeiro em que Jesus foi levantado'},
+      {r:'PEDRA',i:3,d:'Foi removida da entrada do sepulcro'},
+      {r:'VINAGRE',i:1,d:'Bebida azeda oferecida a Jesus na cruz'},
+      {r:'GETSEMANI',i:3,d:'Horto onde Jesus orou e suou gotas de sangue'},
+      {r:'TOME',i:0,d:'Só creu depois de ver as marcas dos cravos'},
+      {r:'GOLGOTA',i:1,d:'Lugar da Caveira, fora da cidade'}
+  ]}
+]},
+
+{ nome:'Parábolas e Palavras', sub:'O ensino do Mestre', fases:[
+  { nome:'Histórias do Mestre', secreta:'PARABOLA',
+    verso:'“Tudo isto falou Jesus por parábolas à multidão.” (Mt 13.34)',
+    linhas:[
+      {r:'PRODIGO',i:0,d:'Filho que gastou tudo e voltou para o pai'},
+      {r:'DRACMA',i:2,d:'Moeda perdida, procurada à luz da candeia'},
+      {r:'REDE',i:0,d:'Lançada ao mar, recolheu peixes de toda a sorte'},
+      {r:'AREIA',i:4,d:'Fundamento do homem insensato'},
+      {r:'BODAS',i:0,d:'Festa de casamento para a qual muitos foram convidados'},
+      {r:'OLEO',i:3,d:'As virgens prudentes o levaram em suas vasilhas'},
+      {r:'LAZARO',i:0,d:'Mendigo cheio de chagas à porta do rico'},
+      {r:'FARINHA',i:1,d:'Três medidas nas quais se escondeu o fermento'}
+  ]},
+  { nome:'Sinais e Maravilhas', secreta:'MILAGRE',
+    verso:'“Jesus operou em presença dos seus discípulos muitos outros sinais.” (Jo 20.30)',
+    linhas:[
+      {r:'MANTO',i:0,d:'A mulher enferma tocou nele e foi curada'},
+      {r:'VINHO',i:1,d:'A água se transformou nele nas bodas'},
+      {r:'LEVANTA',i:0,d:'“___, toma o teu leito e anda”'},
+      {r:'AGUAS',i:0,d:'Jesus andou sobre elas na quarta vigília'},
+      {r:'GALILEIA',i:0,d:'Mar onde a tempestade foi repreendida'},
+      {r:'BARCO',i:2,d:'Jesus dormia na popa dele durante a tormenta'},
+      {r:'PEDRO',i:1,d:'Sua sogra foi curada da febre'}
+  ]},
+  { nome:'Eu Sou', secreta:'REINO',
+    verso:'“Antes que Abraão existisse, eu sou.” (Jo 8.58)',
+    linhas:[
+      {r:'PORTA',i:2,d:'“Eu sou a ___ das ovelhas”'},
+      {r:'CEU',i:1,d:'“Eu sou o pão vivo que desceu do ___”'},
+      {r:'CAMINHO',i:3,d:'“Eu sou o ___, e a verdade, e a vida”'},
+      {r:'MUNDO',i:2,d:'“Eu sou a luz do ___”'},
+      {r:'PASTOR',i:4,d:'“Eu sou o bom ___; conheço as minhas ovelhas”'}
+  ]}
+]},
+
+{ nome:'A Igreja Primitiva', sub:'Atos dos Apóstolos', fases:[
+  { nome:'O Apóstolo dos Gentios', secreta:'PAULO',
+    verso:'“Recebereis a virtude do Espírito Santo e ser-me-eis testemunhas.” (At 1.8)',
+    linhas:[
+      {r:'PEDRO',i:0,d:'Pregou em Pentecostes e três mil se converteram'},
+      {r:'ANTIOQUIA',i:0,d:'Ali os discípulos foram chamados cristãos pela primeira vez'},
+      {r:'EUTICO',i:1,d:'Jovem que caiu da janela e foi restaurado à vida'},
+      {r:'LUCAS',i:0,d:'O médico amado, companheiro de viagem do apóstolo'},
+      {r:'ROMA',i:1,d:'Capital do império, onde Paulo ficou preso'}
+  ]},
+  { nome:'O Vento do Espírito', secreta:'ESPIRITO',
+    verso:'“E todos foram cheios do Espírito Santo.” (At 2.4)',
+    linhas:[
+      {r:'ESTEVAO',i:0,d:'Primeiro mártir, apedrejado enquanto orava'},
+      {r:'SAULO',i:0,d:'Perseguidor derrubado no caminho de Damasco'},
+      {r:'FILIPOS',i:4,d:'Cidade onde Paulo e Silas cantaram na prisão'},
+      {r:'PRISCILA',i:2,d:'Fazedora de tendas, esposa de Áquila'},
+      {r:'SAFIRA',i:4,d:'Mentiu ao Espírito Santo junto com Ananias'},
+      {r:'LIDIA',i:1,d:'Vendedora de púrpura convertida em Filipos'},
+      {r:'TITO',i:0,d:'Companheiro grego deixado em Creta'},
+      {r:'ATOS',i:2,d:'Livro que registra os feitos dos apóstolos'}
+  ]},
+  { nome:'A Igreja Nasce', secreta:'IGREJA',
+    verso:'“E o Senhor acrescentava à igreja aqueles que se haviam de salvar.” (At 2.47)',
+    linhas:[
+      {r:'FILIPE',i:1,d:'Evangelista que batizou o eunuco no caminho de Gaza'},
+      {r:'GENTIOS',i:0,d:'Povos não judeus alcançados pelo evangelho'},
+      {r:'CORINTO',i:2,d:'Cidade grega a quem Paulo escreveu duas cartas'},
+      {r:'ETIOPE',i:0,d:'Eunuco que lia Isaías em seu carro'},
+      {r:'JOAO',i:0,d:'Estava com Pedro na cura do coxo à porta do templo'},
+      {r:'ANANIAS',i:0,d:'Reteve parte do preço do campo e caiu morto'}
+  ]}
+]},
+
+{ nome:'Apocalipse e Esperança', sub:'A revelação de Jesus Cristo', fases:[
+  { nome:'O Cordeiro no Trono', secreta:'CORDEIRO',
+    verso:'“Digno é o Cordeiro que foi morto.” (Ap 5.12)',
+    linhas:[
+      {r:'CANTICO',i:0,d:'Os remidos entoam um novo, diante do trono'},
+      {r:'PATMOS',i:4,d:'Ilha do exílio do apóstolo João'},
+      {r:'TRONO',i:1,d:'Cercado por vinte e quatro anciãos'},
+      {r:'DRAGAO',i:0,d:'A antiga serpente, o acusador dos irmãos'},
+      {r:'EFESO',i:0,d:'Igreja que deixou o seu primeiro amor'},
+      {r:'LAODICEIA',i:4,d:'Igreja morna, nem fria nem quente'},
+      {r:'TERRA',i:3,d:'No fim, há um novo céu e uma nova ___'},
+      {r:'OMEGA',i:0,d:'“Eu sou o Alfa e o ___”'}
+  ]},
+  { nome:'A Vitória Final', secreta:'VITORIA',
+    verso:'“E Deus limpará de seus olhos toda a lágrima.” (Ap 21.4)',
+    linhas:[
+      {r:'VESTES',i:0,d:'Foram lavadas e embranquecidas no sangue do Cordeiro'},
+      {r:'DIABO',i:1,d:'Nome do acusador, lançado fora'},
+      {r:'TRIBOS',i:0,d:'Doze, cada uma com doze mil assinalados'},
+      {r:'COROA',i:1,d:'Prêmio da vida, prometido ao fiel até a morte'},
+      {r:'PROFECIA',i:1,d:'“Bem-aventurado aquele que lê as palavras desta ___”'},
+      {r:'IGREJAS',i:0,d:'Sete, na Ásia Menor, receberam cartas'},
+      {r:'AMEM',i:0,d:'Palavra que encerra a Bíblia'}
+  ]},
+  { nome:'Ora Vem, Senhor', secreta:'MARANATA',
+    verso:'“Certamente cedo venho. Amém. Ora vem, Senhor Jesus.” (Ap 22.20)',
+    linhas:[
+      {r:'MARTIR',i:0,d:'Testemunha fiel até a morte'},
+      {r:'ANJOS',i:0,d:'Mensageiros que tocam as sete trombetas'},
+      {r:'GLORIA',i:3,d:'Cristo voltará com poder e grande ___'},
+      {r:'ALFA',i:0,d:'Princípio: a primeira letra grega'},
+      {r:'NOIVA',i:0,d:'A igreja, preparada para as bodas do Cordeiro'},
+      {r:'SATANAS',i:1,d:'O dragão, também chamado Diabo'},
+      {r:'CARTA',i:3,d:'Cada uma das sete igrejas recebeu a sua'},
+      {r:'LAGRIMA',i:1,d:'Deus enxugará toda ela dos nossos olhos'}
+  ]}
+]}
+];
+
+/* ================= estado e persistência ================= */
+const CHAVE='palavras_escritura_v1';
+let S={moedas:300,prog:{},som:true};
+let mem={};
+function ler(){try{const t=localStorage.getItem(CHAVE);return t?JSON.parse(t):null}catch(e){return mem[CHAVE]||null}}
+function gravar(){const t=JSON.stringify(S);try{localStorage.setItem(CHAVE,t)}catch(e){mem[CHAVE]=t}}
+(function(){const d=ler();if(d){S=Object.assign(S,d)}})();
+
+const PRECO_LETRA=30, PRECO_PALAVRA=90, GANHO_PALAVRA=15, GANHO_FASE=60;
+const EXTRAS='ABCDEFGHIJLMNOPQRSTUVZ';
+const $=id=>document.getElementById(id);
+const chave=(m,f)=>m+'-'+f;
+
+function feitos(m,f){const p=S.prog[chave(m,f)];return p?p.filter(Boolean).length:0}
+function completa(m,f){return feitos(m,f)===MUNDOS[m].fases[f].linhas.length}
+function fasesFeitas(m){return MUNDOS[m].fases.reduce((a,_,f)=>a+(completa(m,f)?1:0),0)}
+function liberado(m){return m===0||fasesFeitas(m-1)>=1}
+
+function moedas(){['moedas-1','moedas-2','moedas-3'].forEach(i=>$(i).textContent=S.moedas)}
+function avisa(t){const a=$('aviso');a.textContent=t;a.classList.add('on');clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove('on'),1800)}
+function tela(id){document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));$(id).classList.add('ativa');window.scrollTo(0,0)}
+
+/* ================= som ================= */
+let ctx=null;
+function bip(f,d,tipo){ if(!S.som)return;
+  try{ ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=tipo||'sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.06,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+d);
+    o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+d);
+  }catch(e){}}
+const somToque=()=>bip(520,.07);
+const somAcerto=()=>{bip(660,.12);setTimeout(()=>bip(880,.18),90)};
+const somErro=()=>bip(150,.22,'square');
+const somFase=()=>{[523,659,784,1046].forEach((f,k)=>setTimeout(()=>bip(f,.22),k*130))};
+
+/* ================= tela de mundos ================= */
+function pintaMundos(){
+  const el=$('lista-mundos');el.innerHTML='';
+  MUNDOS.forEach((m,i)=>{
+    const ok=fasesFeitas(i), tot=m.fases.length, lib=liberado(i);
+    const b=document.createElement('button');
+    b.className='cartao'+(lib?'':' travado')+(ok===tot?' completo':'');
+    b.innerHTML=`<span class="num">${lib?(i+1):'✕'}</span>
+      <span class="info"><span class="nome">${m.nome}</span>
+      <span class="desc">${lib?m.sub:'Conclua uma fase do mundo anterior'}</span>
+      <span class="barra"><i style="width:${tot?ok/tot*100:0}%"></i></span></span>
+      <span class="selo">${ok}/${tot}</span>`;
+    b.onclick=()=>{ if(!lib){avisa('Termine ao menos uma fase do mundo anterior.');return} somToque();abreMundo(i) };
+    el.appendChild(b);
+  });
+  moedas();
+}
+
+/* ================= tela de fases ================= */
+let mundoAtual=0;
+function abreMundo(m){
+  mundoAtual=m;
+  $('titulo-mundo').childNodes[0].nodeValue=MUNDOS[m].nome;
+  $('sub-mundo').textContent=MUNDOS[m].sub;
+  const el=$('lista-fases');el.innerHTML='';
+  MUNDOS[m].fases.forEach((f,i)=>{
+    const ok=feitos(m,i), tot=f.linhas.length, fim=ok===tot;
+    const lib = i===0 || completa(m,i-1);
+    const b=document.createElement('button');
+    b.className='cartao'+(lib?'':' travado')+(fim?' completo':'');
+    b.innerHTML=`<span class="num">${lib?(i+1):'✕'}</span>
+      <span class="info"><span class="nome">${f.nome}</span>
+      <span class="desc">${lib?(fim?'Palavra secreta: '+f.secreta:tot+' definições'):'Conclua a fase anterior'}</span>
+      <span class="barra"><i style="width:${ok/tot*100}%"></i></span></span>
+      <span class="selo">${ok}/${tot}</span>`;
+    b.onclick=()=>{ if(!lib){avisa('Conclua a fase anterior.');return} somToque();abreFase(m,i) };
+    el.appendChild(b);
+  });
+  moedas();tela('tela-fases');
+}
+
+/* ================= motor do jogo ================= */
+let J=null;
+function embaralha(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function montaBanco(resp){
+  const n=Math.min(14, resp.length + Math.max(2, Math.round(resp.length*.45)));
+  const l=resp.split('');
+  while(l.length<n) l.push(EXTRAS[Math.random()*EXTRAS.length|0]);
+  return embaralha(l).map(ch=>({ch,usada:false}));
+}
+
+function abreFase(m,f){
+  const fase=MUNDOS[m].fases[f];
+  const salvo=S.prog[chave(m,f)]||fase.linhas.map(()=>false);
+  const linhas=fase.linhas.map((L,k)=>({
+    resp:L.r, idx:L.i, dica:L.d,
+    entrada:L.r.split('').map(()=>''),
+    fixas:new Set(), origem:{}, banco:montaBanco(L.r),
+    ok:!!salvo[k]
+  }));
+  const maxE=Math.max(...linhas.map(l=>l.idx));
+  const maxD=Math.max(...linhas.map(l=>l.resp.length-l.idx));
+  J={m,f,fase,linhas,maxE,cols:maxE+maxD,ativa:0};
+  const prim=linhas.findIndex(l=>!l.ok);
+  J.ativa = prim<0?0:prim;
+  $('titulo-fase').childNodes[0].nodeValue=fase.nome;
+  $('sub-fase').textContent=MUNDOS[m].nome;
+  pintaGrade();pintaSecreta();pintaDica();pintaBanco();moedas();
+  tela('tela-jogo');
+}
+
+function pintaGrade(){
+  const g=$('grade');g.style.setProperty('--cols',J.cols);
+  g.innerHTML=`<div class="faixa-secreta" style="left:calc(var(--cell) * ${J.maxE})"></div>`;
+  J.linhas.forEach((L,k)=>{
+    const off=J.maxE-L.idx;
+    const d=document.createElement('div');
+    d.className='linha'+(L.ok?' resolvida':'')+(k===J.ativa&&!L.ok?' ativa':'');
+    d.dataset.k=k;
+    L.resp.split('').forEach((ch,p)=>{
+      const c=document.createElement('div');
+      c.className='cel'+(p===L.idx?' secreta':'')+(L.fixas.has(p)?' fixa':'');
+      c.style.gridColumn=(off+p+1);
+      c.textContent=L.ok?ch:(L.entrada[p]||'');
+      c.onclick=()=>{ if(L.ok){ativar(k);return} if(k!==J.ativa){ativar(k);return} tiraLetra(p) };
+      d.appendChild(c);
+    });
+    g.appendChild(d);
+  });
+}
+function pintaSecreta(){
+  const el=$('secreta');el.innerHTML='';
+  J.fase.secreta.split('').forEach((ch,k)=>{
+    const s=document.createElement('span');
+    const on=J.linhas[k]&&J.linhas[k].ok;
+    s.className=on?'on':'';s.textContent=ch;el.appendChild(s);
+  });
+}
+function pintaDica(){
+  const L=J.linhas[J.ativa];
+  $('dica-texto').innerHTML=(L.ok?'<b>✓ </b>':'')+L.dica+' <b>('+L.resp.length+')</b>';
+}
+function pintaBanco(){
+  const el=$('banco');el.innerHTML='';
+  const L=J.linhas[J.ativa];
+  if(L.ok){ el.innerHTML='<div style="color:var(--suave);font-style:italic;padding:14px 0">Resolvida — escolha outra definição.</div>'; return }
+  L.banco.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='tecla'+(t.usada?' usada':'');
+    b.textContent=t.ch;
+    b.onclick=()=>poeLetra(i);
+    el.appendChild(b);
+  });
+}
+function ativar(k){ J.ativa=k;pintaGrade();pintaDica();pintaBanco() }
+
+function poeLetra(i){
+  const L=J.linhas[J.ativa];if(L.ok)return;
+  const t=L.banco[i];if(t.usada)return;
+  const p=L.entrada.findIndex((v,ix)=>!v&&!L.fixas.has(ix));
+  if(p<0)return;
+  L.entrada[p]=t.ch;L.origem[p]=i;t.usada=true;
+  somToque();pintaGrade();pintaBanco();
+  if(L.entrada.every(v=>v)) setTimeout(confere,140);
+}
+function tiraLetra(p){
+  const L=J.linhas[J.ativa];
+  if(L.ok||L.fixas.has(p)||!L.entrada[p])return;
+  const i=L.origem[p];if(i!=null&&L.banco[i])L.banco[i].usada=false;
+  L.entrada[p]='';delete L.origem[p];
+  pintaGrade();pintaBanco();
+}
+function apagaUltima(){
+  const L=J.linhas[J.ativa];if(L.ok)return;
+  for(let p=L.entrada.length-1;p>=0;p--){ if(L.entrada[p]&&!L.fixas.has(p)){tiraLetra(p);return} }
+}
+function limpaLinha(L){
+  L.entrada.forEach((v,p)=>{ if(v&&!L.fixas.has(p)){const i=L.origem[p];if(i!=null&&L.banco[i])L.banco[i].usada=false;L.entrada[p]='';delete L.origem[p]} });
+}
+function confere(){
+  const L=J.linhas[J.ativa], k=J.ativa;
+  if(L.entrada.join('')===L.resp){ resolve(k,true) }
+  else{
+    somErro();
+    const el=document.querySelector('.linha[data-k="'+k+'"]');
+    if(el){el.classList.add('errou');setTimeout(()=>el.classList.remove('errou'),400)}
+    setTimeout(()=>{limpaLinha(L);pintaGrade();pintaBanco()},420);
+  }
+}
+function resolve(k,premia){
+  const L=J.linhas[k];L.ok=true;
+  if(premia){S.moedas+=GANHO_PALAVRA;somAcerto()}
+  const ch=chave(J.m,J.f);
+  S.prog[ch]=J.linhas.map(l=>l.ok);gravar();moedas();
+  pintaGrade();pintaSecreta();
+  const el=document.querySelector('.linha[data-k="'+k+'"]');
+  if(el){el.classList.add('acertou');setTimeout(()=>el.classList.remove('acertou'),520)}
+  if(J.linhas.every(l=>l.ok)){ setTimeout(fimDeFase,650); return }
+  const prox=J.linhas.findIndex(l=>!l.ok);
+  setTimeout(()=>ativar(prox),520);
+}
+function navega(passo){
+  let k=J.ativa;
+  for(let n=0;n<J.linhas.length;n++){
+    k=(k+passo+J.linhas.length)%J.linhas.length;
+    if(!J.linhas[k].ok){ativar(k);return}
+  }
+  ativar((J.ativa+passo+J.linhas.length)%J.linhas.length);
+}
+function dicaLetra(){
+  const L=J.linhas[J.ativa];if(L.ok){avisa('Esta já está resolvida.');return}
+  if(S.moedas<PRECO_LETRA){avisa('Moedas insuficientes.');return}
+  const livres=[];L.resp.split('').forEach((ch,p)=>{ if(!L.fixas.has(p)&&L.entrada[p]!==ch) livres.push(p) });
+  if(!livres.length){avisa('Nada a revelar aqui.');return}
+  const p=livres[Math.random()*livres.length|0];
+  if(L.entrada[p]) tiraLetra(p);
+  const ch=L.resp[p];
+  const i=L.banco.findIndex(t=>!t.usada&&t.ch===ch);
+  if(i>=0){L.banco[i].usada=true;L.origem[p]=i}
+  L.entrada[p]=ch;L.fixas.add(p);
+  S.moedas-=PRECO_LETRA;gravar();moedas();somToque();
+  pintaGrade();pintaBanco();
+  if(L.entrada.every(v=>v)) setTimeout(confere,180);
+}
+function dicaPalavra(){
+  const L=J.linhas[J.ativa];if(L.ok){avisa('Esta já está resolvida.');return}
+  if(S.moedas<PRECO_PALAVRA){avisa('Moedas insuficientes.');return}
+  S.moedas-=PRECO_PALAVRA;
+  L.resp.split('').forEach((ch,p)=>{L.entrada[p]=ch;L.fixas.add(p)});
+  gravar();resolve(J.ativa,false);pintaBanco();
+}
+function fimDeFase(){
+  S.moedas+=GANHO_FASE;gravar();moedas();somFase();
+  $('fim-palavra').textContent=J.fase.secreta;
+  $('fim-verso').textContent=J.fase.verso;
+  $('fim-premio').textContent='+ '+GANHO_FASE+' moedas';
+  const ultima = J.f>=MUNDOS[J.m].fases.length-1;
+  $('fim-proxima').textContent = ultima?'Escolher outro mundo':'Próxima fase';
+  $('veu-fim').classList.add('ativo');
+}
+
+/* ================= eventos ================= */
+$('btn-ajustes').onclick=()=>{$('aj-som').textContent='Som: '+(S.som?'ligado':'desligado');$('veu-ajustes').classList.add('ativo')};
+$('aj-fechar').onclick=()=>$('veu-ajustes').classList.remove('ativo');
+$('aj-som').onclick=function(){S.som=!S.som;gravar();this.textContent='Som: '+(S.som?'ligado':'desligado')};
+$('aj-zerar').onclick=()=>{ if(confirm('Apagar todo o progresso e voltar ao início?')){S={moedas:300,prog:{},som:S.som};gravar();pintaMundos();$('veu-ajustes').classList.remove('ativo');avisa('Progresso zerado.')} };
+$('voltar-mundos').onclick=()=>{somToque();pintaMundos();tela('tela-mundos')};
+$('voltar-fases').onclick=()=>{somToque();abreMundo(J?J.m:mundoAtual)};
+$('dica-ant').onclick=()=>navega(-1);
+$('dica-prox').onclick=()=>navega(1);
+$('btn-apagar').onclick=apagaUltima;
+$('btn-embaralhar').onclick=()=>{const L=J.linhas[J.ativa];if(L.ok)return;limpaLinha(L);embaralha(L.banco);pintaGrade();pintaBanco();somToque()};
+$('btn-letra').onclick=dicaLetra;
+$('btn-palavra').onclick=dicaPalavra;
+$('fim-mapa').onclick=()=>{$('veu-fim').classList.remove('ativo');abreMundo(J.m)};
+$('fim-proxima').onclick=()=>{
+  $('veu-fim').classList.remove('ativo');
+  if(J.f<MUNDOS[J.m].fases.length-1) abreFase(J.m,J.f+1);
+  else { pintaMundos();tela('tela-mundos') }
+};
+
+/* teclado físico (desktop) */
+document.addEventListener('keydown',e=>{
+  if(!$('tela-jogo').classList.contains('ativa'))return;
+  if($('veu-fim').classList.contains('ativo')||$('veu-ajustes').classList.contains('ativo'))return;
+  const L=J&&J.linhas[J.ativa];if(!L)return;
+  if(e.key==='Backspace'){e.preventDefault();apagaUltima();return}
+  if(e.key==='ArrowDown'){e.preventDefault();navega(1);return}
+  if(e.key==='ArrowUp'){e.preventDefault();navega(-1);return}
+  if(e.key==='Enter'){e.preventDefault();if(L.entrada.every(v=>v))confere();return}
+  const ch=(e.key||'').toUpperCase();
+  if(/^[A-Z]$/.test(ch)){
+    const i=L.banco.findIndex(t=>!t.usada&&t.ch===ch);
+    if(i>=0)poeLetra(i);
+  }
+});
+
+/* manifesto PWA embutido */
+try{
+  const man={name:'Palavras da Escritura',short_name:'Escritura',start_url:'.',display:'standalone',
+    background_color:'#0F1B33',theme_color:'#0F1B33',orientation:'portrait',
+    icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%230F1B33'/%3E%3Ctext x='256' y='350' font-family='Georgia,serif' font-size='270' fill='%23C9A227' text-anchor='middle'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E",
+      sizes:'512x512',type:'image/svg+xml',purpose:'any'}]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));
+  document.head.appendChild(l);
+}catch(e){}
+
+pintaMundos();
+</script>
+</body>
+</html>
