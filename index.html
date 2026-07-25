@@ -31,7 +31,7 @@ body{
   color:var(--texto);
   font-family:'Cormorant Garamond',Georgia,serif;
   font-size:18px;
-  overscroll-behavior:none;
+  overscroll-behavior:none;overflow-x:hidden;
   -webkit-user-select:none;user-select:none;
 }
 button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
@@ -127,18 +127,20 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 .dica-texto b{color:var(--gold2);font-weight:600}
 
 /* teclado / banco de letras */
-.banco{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px 0 2px}
+.banco{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px 0 2px;width:100%}
 .tecla{width:40px;height:44px;border-radius:11px;font-family:'Cinzel',serif;font-weight:700;font-size:18px;
   color:var(--navy);background:linear-gradient(180deg,#F0E4BC,#D9BE6B);
   box-shadow:0 3px 0 var(--gold-esc);transition:.1s}
 .tecla:active{transform:translateY(3px);box-shadow:0 0 0 var(--gold-esc)}
 .tecla.usada{opacity:.22;pointer-events:none;box-shadow:none}
-.acoes{display:flex;gap:8px;justify-content:center;padding:6px 0 2px}
-.acao{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:12px;
-  background:rgba(255,255,255,.06);border:1px solid var(--borda);font-size:14px;color:var(--creme);
-  font-family:'Cinzel',serif;letter-spacing:.02em}
+.acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 0 2px;width:100%}
+.acao{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid var(--borda);font-size:13px;color:var(--creme);
+  font-family:'Cinzel',serif;letter-spacing:.01em;white-space:nowrap;min-width:0;overflow:hidden}
 .acao:active{transform:scale(.95)}
-.acao .preco{color:var(--gold2);font-size:13px}
+.acao .preco{color:var(--gold2);font-size:12px}
+@media (min-width:520px){.acoes{grid-template-columns:repeat(4,1fr)}.acao{font-size:14px;padding:11px 8px}}
+@media (max-width:340px){.acao{font-size:11.5px;padding:10px 4px}.tecla{width:36px;height:42px;font-size:17px}}
 .acao[disabled]{opacity:.4}
 
 /* modal */
@@ -217,7 +219,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
         </div>
         <div class="banco" id="banco"></div>
         <div class="acoes">
-          <button class="acao" id="btn-apagar">⌫ Apagar</button>
+          <button class="acao" id="btn-apagar">← Apagar</button>
           <button class="acao" id="btn-embaralhar">⇄ Embaralhar</button>
           <button class="acao" id="btn-letra">Revelar letra <span class="preco">30</span></button>
           <button class="acao" id="btn-palavra">Palavra <span class="preco">90</span></button>
@@ -506,13 +508,325 @@ const MUNDOS = [
 ]}
 ];
 
+/* ====== BANCO DE PALAVRAS (conhecimento geral da Bíblia) ====== */
+const BANCO_LOCAL=[
+{p:'ABEL',d:'Pastor de ovelhas, morto pelo próprio irmão'},
+{p:'ABRAAO',d:'O pai da fé, chamado de Ur dos caldeus'},
+{p:'ABSALAO',d:'Filho rebelde de Davi, preso pelos cabelos'},
+{p:'ACABE',d:'Rei de Israel casado com Jezabel'},
+{p:'ADAO',d:'O primeiro homem, formado do pó'},
+{p:'AGAR',d:'Serva de Sara e mãe de Ismael'},
+{p:'AGUA',d:'Jesus a pediu à mulher samaritana no poço'},
+{p:'ALTAR',d:'Lugar onde se ofereciam os sacrifícios'},
+{p:'AMEM',d:'Palavra que confirma a oração: assim seja'},
+{p:'AMOR',d:'O maior dentre a fé, a esperança e ele'},
+{p:'AMOS',d:'Profeta que era pastor e cultivava sicômoros'},
+{p:'ANCIAO',d:'Líder maduro que governa a igreja'},
+{p:'ANJO',d:'Mensageiro celestial enviado por Deus'},
+{p:'APOSTOLO',d:'Enviado com autoridade por Cristo'},
+{p:'ARAO',d:'Irmão de Moisés e primeiro sumo sacerdote'},
+{p:'ARARATE',d:'Montes onde a arca de Noé repousou'},
+{p:'ARCA',d:'Salvou Noé do dilúvio; também guardou a Lei'},
+{p:'ARCANJO',d:'Título dado a Miguel nas Escrituras'},
+{p:'AREIA',d:'Fundamento escolhido pelo homem insensato'},
+{p:'ASNA',d:'Animal de Balaão que falou ao seu dono'},
+{p:'ATOS',d:'Livro que narra o nascimento da igreja'},
+{p:'AZEITE',d:'Usado para ungir reis, profetas e sacerdotes'},
+{p:'AZIMO',d:'Pão sem fermento comido na Páscoa'},
+{p:'BABEL',d:'Torre da confusão das línguas'},
+{p:'BABILONIA',d:'Império que levou Judá ao cativeiro'},
+{p:'BARCO',d:'Nele Jesus dormia durante a tempestade'},
+{p:'BARNABE',d:'O filho da consolação, companheiro de Paulo'},
+{p:'BARRABAS',d:'Preso solto pela multidão no lugar de Jesus'},
+{p:'BATISMO',d:'Sinal público da fé, por imersão nas águas'},
+{p:'BELEM',d:'Cidade de Davi e do nascimento de Jesus'},
+{p:'BENJAMIM',d:'Filho caçula de Jacó e de Raquel'},
+{p:'BETEL',d:'Casa de Deus, onde Jacó sonhou com a escada'},
+{p:'BISPO',d:'Ofício de supervisão e cuidado na igreja'},
+{p:'BODAS',d:'Festa de casamento, como a de Caná'},
+{p:'BONDADE',d:'Um dos frutos do Espírito em Gálatas 5'},
+{p:'BRONZE',d:'Metal da serpente levantada no deserto'},
+{p:'CAIFAS',d:'Sumo sacerdote no julgamento de Jesus'},
+{p:'CAIM',d:'Primeiro homicida registrado na Bíblia'},
+{p:'CAJADO',d:'Vara do pastor, que consola as ovelhas'},
+{p:'CALICE',d:'Copo levantado por Jesus na última ceia'},
+{p:'CALVARIO',d:'Lugar da Caveira, onde Jesus foi crucificado'},
+{p:'CAMELO',d:'Passaria pelo fundo de uma agulha, disse Jesus'},
+{p:'CANA',d:'Cidade do primeiro milagre de Jesus'},
+{p:'CANAA',d:'Terra prometida, onde manava leite e mel'},
+{p:'CARMELO',d:'Monte do desafio de Elias aos profetas de Baal'},
+{p:'CATIVEIRO',d:'Exílio do povo de Judá na Babilônia'},
+{p:'CEIA',d:'Refeição do Senhor com pão e cálice'},
+{p:'CENTURIAO',d:'Militar romano cujo servo foi curado à distância'},
+{p:'CEU',d:'Morada de Deus e herança dos santos'},
+{p:'CORDEIRO',d:'Figura de Cristo, que tira o pecado do mundo'},
+{p:'COROA',d:'Prêmio da vida prometido ao fiel'},
+{p:'CORVO',d:'Ave que levou pão e carne a Elias'},
+{p:'CRUZ',d:'Madeiro em que se deu a redenção'},
+{p:'DAMASCO',d:'Cidade do caminho da conversão de Saulo'},
+{p:'DANIEL',d:'Profeta lançado na cova dos leões'},
+{p:'DAVI',d:'Pastor de Belém que se tornou rei'},
+{p:'DEMONIO',d:'Espírito imundo expulso pela palavra de Jesus'},
+{p:'DESERTO',d:'Lugar dos quarenta anos de peregrinação'},
+{p:'DIACONO',d:'Servo escolhido para servir às mesas'},
+{p:'DILUVIO',d:'Juízo das águas nos dias de Noé'},
+{p:'DISCIPULO',d:'Aprendiz que segue e imita o mestre'},
+{p:'DIZIMO',d:'A décima parte consagrada ao Senhor'},
+{p:'DOMINGO',d:'Dia do Senhor, da ressurreição'},
+{p:'DOUTRINA',d:'Ensino sadio no qual a igreja permanece'},
+{p:'DRAGAO',d:'No Apocalipse, a antiga serpente'},
+{p:'EDEN',d:'Jardim onde Deus colocou o primeiro casal'},
+{p:'EFESO',d:'Igreja que havia deixado o primeiro amor'},
+{p:'EGITO',d:'Terra da escravidão de Israel'},
+{p:'ELIAS',d:'Profeta arrebatado num carro de fogo'},
+{p:'ELISEU',d:'Recebeu porção dobrada do espírito de Elias'},
+{p:'EMANUEL',d:'Nome que significa Deus conosco'},
+{p:'ESAU',d:'Vendeu a primogenitura por um guisado'},
+{p:'ESDRAS',d:'Escriba que leu a Lei diante do povo'},
+{p:'ESPINHOS',d:'Coroa colocada na cabeça de Jesus'},
+{p:'ESTER',d:'Rainha que arriscou a vida por seu povo'},
+{p:'ESTEVAO',d:'Primeiro mártir da igreja cristã'},
+{p:'ESTRELA',d:'Guiou os magos até o menino Jesus'},
+{p:'EUNUCO',d:'Etíope batizado por Filipe no caminho de Gaza'},
+{p:'EVA',d:'Chamada mãe de todos os viventes'},
+{p:'EVANGELHO',d:'As boas-novas da salvação em Cristo'},
+{p:'EZEQUIEL',d:'Profeta que viu o vale de ossos secos'},
+{p:'FARAO',d:'Título do rei do Egito'},
+{p:'FIGUEIRA',d:'Árvore sem fruto amaldiçoada por Jesus'},
+{p:'FILIPE',d:'Evangelista que explicou Isaías ao eunuco'},
+{p:'FILISTEUS',d:'Povo inimigo de Israel, das cinco cidades'},
+{p:'FOGO',d:'Desceu do céu sobre o altar no Carmelo'},
+{p:'GABRIEL',d:'Anjo que anunciou o nascimento de Jesus'},
+{p:'GALILEIA',d:'Região onde Jesus cresceu e ensinou'},
+{p:'GENESIS',d:'Primeiro livro das Escrituras'},
+{p:'GENTIOS',d:'Os povos que não eram judeus'},
+{p:'GIDEAO',d:'Juiz que venceu os midianitas com trezentos homens'},
+{p:'GLORIA',d:'Peso e esplendor da presença de Deus'},
+{p:'GOLIAS',d:'Gigante de Gate, morto por uma pedra'},
+{p:'HARPA',d:'Instrumento tocado por Davi diante de Saul'},
+{p:'HEBRON',d:'Cidade onde Abraão sepultou Sara'},
+{p:'HERODES',d:'Rei que mandou matar os meninos de Belém'},
+{p:'IGREJA',d:'O corpo de Cristo, reunido em seu nome'},
+{p:'INCENSO',d:'Símbolo das orações dos santos diante do trono'},
+{p:'ISAIAS',d:'Profeta que ouviu o Santo, Santo, Santo'},
+{p:'ISAQUE',d:'Filho da promessa, poupado no monte Moriá'},
+{p:'ISRAEL',d:'Nome dado a Jacó e ao povo escolhido'},
+{p:'JACO',d:'Pai das doze tribos, lutou com o Anjo'},
+{p:'JEJUM',d:'Abstinência voluntária para buscar a Deus'},
+{p:'JERICO',d:'Cidade cujos muros caíram ao som das trombetas'},
+{p:'JEREMIAS',d:'O profeta chorão, do cativeiro de Judá'},
+{p:'JERUSALEM',d:'Cidade santa, capital do reino de Judá'},
+{p:'JESUS',d:'O Salvador, Filho de Deus e Filho do homem'},
+{p:'JEZABEL',d:'Rainha ímpia que perseguiu os profetas'},
+{p:'JOABE',d:'Comandante do exército do rei Davi'},
+{p:'JOAO',d:'Discípulo amado; também o nome do Batista'},
+{p:'JONAS',d:'Profeta engolido por um grande peixe'},
+{p:'JORDAO',d:'Rio em que Jesus foi batizado'},
+{p:'JOSE',d:'Sonhador vendido pelos irmãos e exaltado no Egito'},
+{p:'JOSUE',d:'Conduziu Israel à conquista da terra prometida'},
+{p:'JUBILEU',d:'Ano de libertação, a cada cinquenta anos'},
+{p:'JUDA',d:'Tribo do Leão, da qual veio o Messias'},
+{p:'JUIZES',d:'Livro dos libertadores de Israel'},
+{p:'JUIZO',d:'Dia em que todos prestarão contas a Deus'},
+{p:'LAGRIMA',d:'Deus enxugará toda ela dos nossos olhos'},
+{p:'LAMPADA',d:'A palavra é isso para os nossos pés'},
+{p:'LAZARO',d:'Chamado para fora do sepulcro por Jesus'},
+{p:'LEAO',d:'Cristo é chamado o da tribo de Judá'},
+{p:'LEVITA',d:'Da tribo separada para o serviço do santuário'},
+{p:'LIA',d:'Primeira esposa de Jacó, irmã de Raquel'},
+{p:'LOUVOR',d:'Sacrifício de lábios que confessam o nome de Deus'},
+{p:'LUCAS',d:'O médico amado, autor de um evangelho'},
+{p:'LUZ',d:'Vós sois a do mundo, disse Jesus'},
+{p:'MAGOS',d:'Vieram do oriente guiados por uma estrela'},
+{p:'MANA',d:'Pão que caía do céu no deserto'},
+{p:'MANTO',d:'O de Elias caiu sobre Eliseu'},
+{p:'MARCOS',d:'Autor do evangelho mais breve'},
+{p:'MARIA',d:'A jovem de Nazaré, mãe de Jesus'},
+{p:'MARTIR',d:'Testemunha fiel até a morte'},
+{p:'MILAGRE',d:'Sinal extraordinário do poder de Deus'},
+{p:'MIQUEIAS',d:'Profetizou que o Messias nasceria em Belém'},
+{p:'MIRRA',d:'Um dos presentes trazidos ao menino Jesus'},
+{p:'MOISES',d:'Libertador de Israel que recebeu a Lei'},
+{p:'MONTE',d:'Elevação; nele Jesus pregou as bem-aventuranças'},
+{p:'NABOTE',d:'Dono da vinha cobiçada pelo rei Acabe'},
+{p:'NAZARE',d:'Cidade da Galileia onde Jesus cresceu'},
+{p:'NEEMIAS',d:'Reconstruiu os muros de Jerusalém'},
+{p:'NILO',d:'Rio do Egito cujas águas viraram sangue'},
+{p:'NINIVE',d:'Cidade que se arrependeu à pregação de Jonas'},
+{p:'NOE',d:'Pregador da justiça que construiu a arca'},
+{p:'NOIVA',d:'Figura da igreja, preparada para o Cordeiro'},
+{p:'OLEO',d:'Símbolo da unção do Espírito Santo'},
+{p:'OLIVEIRA',d:'Árvore do monte de onde Jesus subiu ao céu'},
+{p:'OMEGA',d:'Eu sou o Alfa e o que vem depois'},
+{p:'ORFAO',d:'A religião pura visita ele e a viúva'},
+{p:'ORVALHO',d:'Junto com a lã, foi o sinal pedido por Gideão'},
+{p:'OURO',d:'Presente dos magos ao rei que nascera'},
+{p:'OVELHA',d:'A perdida foi buscada pelo pastor'},
+{p:'PACIENCIA',d:'Fruto do Espírito que suporta e espera'},
+{p:'PALAVRA',d:'No princípio era ela, e era com Deus'},
+{p:'PAO',d:'Eu sou o da vida, disse Jesus'},
+{p:'PARABOLA',d:'História simples com ensino espiritual'},
+{p:'PARAISO',d:'Hoje estarás comigo nele, disse Jesus ao ladrão'},
+{p:'PASCOA',d:'Festa que lembra a libertação do Egito'},
+{p:'PASTOR',d:'O Senhor é o meu, nada me faltará'},
+{p:'PAULO',d:'Apóstolo dos gentios, escritor de treze cartas'},
+{p:'PECADO',d:'Transgressão da lei de Deus'},
+{p:'PEDRA',d:'Cristo é a principal da esquina'},
+{p:'PEDRO',d:'Negou o Senhor e foi restaurado à beira-mar'},
+{p:'PEIXE',d:'Multiplicado com os pães diante da multidão'},
+{p:'PERDAO',d:'O que Deus concede a quem confessa o pecado'},
+{p:'PILATOS',d:'Governador que lavou as mãos diante do povo'},
+{p:'POMBA',d:'Forma visível da descida do Espírito no batismo'},
+{p:'PROFETA',d:'Aquele que fala da parte de Deus'},
+{p:'PROMESSA',d:'Fiel é aquele que a fez'},
+{p:'QUERUBIM',d:'Ser celestial que guarda a santidade de Deus'},
+{p:'RAQUEL',d:'Esposa amada de Jacó, mãe de José'},
+{p:'REBANHO',d:'Haverá um só, e um só pastor'},
+{p:'REDE',d:'Instrumento de trabalho dos pescadores'},
+{p:'REINO',d:'Venha a nós o teu, diz a oração do Senhor'},
+{p:'ROMA',d:'Capital do império, onde Paulo esteve preso'},
+{p:'RUTE',d:'Moabita que disse: o teu povo é o meu povo'},
+{p:'SABADO',d:'Sétimo dia, santificado para o descanso'},
+{p:'SACERDOTE',d:'Aquele que oferecia sacrifícios pelo povo'},
+{p:'SAL',d:'Vós sois o da terra, disse Jesus'},
+{p:'SALMO',d:'Cântico inspirado de louvor e oração'},
+{p:'SALOMAO',d:'Rei sábio que edificou o templo'},
+{p:'SAMUEL',d:'Ungiu o primeiro e o segundo rei de Israel'},
+{p:'SANSAO',d:'Juiz cuja força estava no voto de nazireu'},
+{p:'SANTUARIO',d:'Lugar separado para a presença de Deus'},
+{p:'SARA',d:'Esposa de Abraão, mãe na velhice'},
+{p:'SATANAS',d:'O adversário, pai da mentira'},
+{p:'SAUL',d:'Primeiro rei de Israel, da tribo de Benjamim'},
+{p:'SEMENTE',d:'Na parábola, representa a palavra de Deus'},
+{p:'SENHOR',d:'Título de domínio confessado por Tomé'},
+{p:'SERPENTE',d:'Enganou Eva no jardim do Éden'},
+{p:'SIAO',d:'Monte de Jerusalém, cidade do grande Rei'},
+{p:'SILAS',d:'Cantou com Paulo na prisão de Filipos'},
+{p:'SINAGOGA',d:'Lugar de leitura da Lei entre os judeus'},
+{p:'SINAI',d:'Monte da entrega dos Dez Mandamentos'},
+{p:'SODOMA',d:'Cidade destruída por fogo e enxofre'},
+{p:'TALENTOS',d:'Na parábola, foram entregues a três servos'},
+{p:'TEMPLO',d:'Casa de Deus edificada em Jerusalém'},
+{p:'TENDA',d:'Habitação de Israel durante a peregrinação'},
+{p:'TIAGO',d:'Escreveu que a fé sem obras é morta'},
+{p:'TIMOTEO',d:'Filho na fé, deixado como pastor em Éfeso'},
+{p:'TOME',d:'Só creu depois de ver as marcas dos cravos'},
+{p:'TRIGO',d:'Cresce junto com o joio até a ceifa'},
+{p:'TRINDADE',d:'Pai, Filho e Espírito Santo, um só Deus'},
+{p:'TRONO',d:'Assento da majestade, cercado de anciãos'},
+{p:'UNGIDO',d:'Significado da palavra Messias'},
+{p:'UNGUENTO',d:'Perfume derramado sobre os pés de Jesus'},
+{p:'VERBO',d:'No princípio era ele, e se fez carne'},
+{p:'VIDA',d:'Eu sou o caminho, a verdade e ela'},
+{p:'VIDEIRA',d:'Eu sou a verdadeira, e meu Pai é o lavrador'},
+{p:'VINHO',d:'A água se transformou nele em Caná'},
+{p:'VITORIA',d:'Esta é a que vence o mundo: a nossa fé'},
+{p:'VIUVA',d:'Ofertou duas pequenas moedas no gazofilácio'},
+{p:'ZAQUEU',d:'Publicano que subiu numa figueira brava'},
+{p:'ZELO',d:'O da tua casa me devorou, diz o Salmo'}
+];
+
+/* ====== PALAVRAS SECRETAS + VERSÍCULO ====== */
+const SECRETAS=[
+{s:'BIBLIA',v:'“Toda a Escritura é divinamente inspirada.” (2Tm 3.16)'},
+{s:'ESPIRITO',v:'“O Espírito é o que vivifica.” (Jo 6.63)'},
+{s:'PALAVRA',v:'“Lâmpada para os meus pés é a tua palavra.” (Sl 119.105)'},
+{s:'MILAGRE',v:'“Para Deus nada é impossível.” (Lc 1.37)'},
+{s:'TEMPLO',v:'“Não sabeis vós que sois o templo de Deus?” (1Co 3.16)'},
+{s:'BATISMO',v:'“Ide, ensinai todas as nações, batizando-as.” (Mt 28.19)'},
+{s:'JEJUM',v:'“Quando jejuardes, não vos mostreis contristados.” (Mt 6.16)'},
+{s:'LOUVOR',v:'“Tudo quanto tem fôlego louve ao Senhor.” (Sl 150.6)'},
+{s:'PERDAO',v:'“Perdoai, e sereis perdoados.” (Lc 6.37)'},
+{s:'VITORIA',v:'“Esta é a vitória que vence o mundo: a nossa fé.” (1Jo 5.4)'},
+{s:'APOSTOLO',v:'“Ide por todo o mundo, pregai o evangelho.” (Mc 16.15)'},
+{s:'CALVARIO',v:'“Está consumado.” (Jo 19.30)'},
+{s:'GRATIDAO',v:'“Em tudo dai graças.” (1Ts 5.18)'},
+{s:'ORVALHO',v:'“Serei como o orvalho para Israel.” (Os 14.5)'},
+{s:'VIDEIRA',v:'“Eu sou a videira, vós as varas.” (Jo 15.5)'},
+{s:'TALENTOS',v:'“Bem está, servo bom e fiel.” (Mt 25.21)'},
+{s:'SEMENTE',v:'“A semente é a palavra de Deus.” (Lc 8.11)'},
+{s:'JUBILEU',v:'“Apregoareis liberdade na terra.” (Lv 25.10)'},
+{s:'PROMESSA',v:'“Fiel é o que prometeu.” (Hb 10.23)'},
+{s:'REBANHO',v:'“Haverá um rebanho e um pastor.” (Jo 10.16)'},
+{s:'SALMOS',v:'“Cantai ao Senhor um cântico novo.” (Sl 96.1)'},
+{s:'DOUTRINA',v:'“Perseveravam na doutrina dos apóstolos.” (At 2.42)'},
+{s:'EMANUEL',v:'“Chamarão o seu nome Emanuel: Deus conosco.” (Mt 1.23)'},
+{s:'PARAISO',v:'“Hoje estarás comigo no paraíso.” (Lc 23.43)'},
+{s:'SANTOS',v:'“Sede santos, porque eu sou santo.” (1Pe 1.16)'},
+{s:'TRINDADE',v:'“Em nome do Pai, e do Filho, e do Espírito Santo.” (Mt 28.19)'}
+];
+
+/* ====== MUNDO AUTOMÁTICO ====== */
+MUNDOS.push({nome:'Conhecimento Geral da Bíblia',sub:'fases criadas pelo próprio app',auto:true,fases:[]});
+const AUTO=MUNDOS.length-1;
+
+/* ====== SUPABASE (opcional): amplia o banco de palavras ======
+   Preencha as duas linhas abaixo com o seu projeto. Enquanto
+   estiverem vazias, o app usa apenas o banco local — e funciona
+   normalmente, sem nenhuma chamada de rede.                     */
+const SUPA={url:'',key:''};
+let bancoExtra=[];
+function bancoTotal(){return bancoExtra.length?BANCO_LOCAL.concat(bancoExtra):BANCO_LOCAL}
+async function carregaBanco(){
+  if(!SUPA.url||!SUPA.key)return;
+  try{
+    const r=await fetch(SUPA.url+'/rest/v1/jogo_palavras?select=palavra,dica&aprovada=eq.true&limit=3000',
+      {headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});
+    if(!r.ok)return;
+    const d=await r.json(), tem=new Set(BANCO_LOCAL.map(w=>w.p));
+    bancoExtra=d.map(x=>({p:String(x.palavra||'').toUpperCase().trim(),d:String(x.dica||'').trim()}))
+      .filter(w=>/^[A-Z]{3,9}$/.test(w.p)&&w.d.length>10&&!tem.has(w.p));
+    if(bancoExtra.length)avisa('Banco ampliado: +'+bancoExtra.length+' palavras');
+  }catch(e){}
+}
+/* ====== MONTADOR DE FASES (100% local, sem IA em tempo de jogo) ====== */
+function _emb(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function geraFase(n,banco){
+  banco = banco && banco.length>40 ? banco : BANCO_LOCAL;
+  for(let t=0;t<90;t++){
+    const alvo=SECRETAS[Math.random()*SECRETAS.length|0];
+    const base=1+(Math.random()*3|0);            // coluna secreta da fase
+    const usadas=new Set([alvo.s]);
+    let maxE=0,maxD=0,ok=true;const linhas=[];
+    for(const L of alvo.s){
+      const alvoLinha=Math.max(0,base+((Math.random()*3|0)-1));  // escalona as linhas
+      const cands=_emb(banco.filter(w=>w.p.length>=3&&w.p.length<=9&&w.p.indexOf(L)>=0&&!usadas.has(w.p))).slice(0,18);
+      let melhor=null,nota=1e9;
+      for(const w of cands){
+        for(let i=0;i<w.p.length;i++){
+          if(w.p[i]!==L)continue;
+          const larg=Math.max(maxE,i)+Math.max(maxD,w.p.length-i);
+          const s=Math.abs(i-alvoLinha)*1.4+(larg>11?80:0)+larg*0.45-w.p.length*0.45+Math.random()*0.7;
+          if(s<nota){nota=s;melhor={w,i}}
+        }
+      }
+      if(!melhor){ok=false;break}
+      usadas.add(melhor.w.p);
+      maxE=Math.max(maxE,melhor.i);maxD=Math.max(maxD,melhor.w.p.length-melhor.i);
+      linhas.push({r:melhor.w.p,i:melhor.i,d:melhor.w.d});
+    }
+    if(ok&&maxE+maxD<=11) return {nome:'Rodada '+n,secreta:alvo.s,verso:alvo.v,linhas:linhas};
+  }
+  return null;
+}
+
+function sincronizaAuto(){ MUNDOS[AUTO].fases=S.geradas; if(!S.geradas.length)novaFase(3) }
+function novaFase(qtd){
+  let n=0;
+  for(let k=0;k<(qtd||1);k++){
+    const f=geraFase(S.geradas.length+1,bancoTotal());
+    if(f){S.geradas.push(f);n++}
+  }
+  MUNDOS[AUTO].fases=S.geradas;gravar();return n;
+}
+
 /* ================= estado e persistência ================= */
 const CHAVE='palavras_escritura_v1';
-let S={moedas:300,prog:{},som:true};
+let S={moedas:300,prog:{},som:true,geradas:[]};
 let mem={};
 function ler(){try{const t=localStorage.getItem(CHAVE);return t?JSON.parse(t):null}catch(e){return mem[CHAVE]||null}}
 function gravar(){const t=JSON.stringify(S);try{localStorage.setItem(CHAVE,t)}catch(e){mem[CHAVE]=t}}
-(function(){const d=ler();if(d){S=Object.assign(S,d)}})();
+(function(){const d=ler();if(d){S=Object.assign(S,d)}if(!Array.isArray(S.geradas))S.geradas=[]})();
 
 const PRECO_LETRA=30, PRECO_PALAVRA=90, GANHO_PALAVRA=15, GANHO_FASE=60;
 const EXTRAS='ABCDEFGHIJLMNOPQRSTUVZ';
@@ -522,7 +836,7 @@ const chave=(m,f)=>m+'-'+f;
 function feitos(m,f){const p=S.prog[chave(m,f)];return p?p.filter(Boolean).length:0}
 function completa(m,f){return feitos(m,f)===MUNDOS[m].fases[f].linhas.length}
 function fasesFeitas(m){return MUNDOS[m].fases.reduce((a,_,f)=>a+(completa(m,f)?1:0),0)}
-function liberado(m){return m===0||fasesFeitas(m-1)>=1}
+function liberado(m){return MUNDOS[m].auto?true:(m===0||fasesFeitas(m-1)>=1)}
 
 function moedas(){['moedas-1','moedas-2','moedas-3'].forEach(i=>$(i).textContent=S.moedas)}
 function avisa(t){const a=$('aviso');a.textContent=t;a.classList.add('on');clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove('on'),1800)}
@@ -552,7 +866,7 @@ function pintaMundos(){
     b.className='cartao'+(lib?'':' travado')+(ok===tot?' completo':'');
     b.innerHTML=`<span class="num">${lib?(i+1):'✕'}</span>
       <span class="info"><span class="nome">${m.nome}</span>
-      <span class="desc">${lib?m.sub:'Conclua uma fase do mundo anterior'}</span>
+      <span class="desc">${lib?(m.auto?m.sub+' \u2014 sem fim':m.sub):'Conclua uma fase do mundo anterior'}</span>
       <span class="barra"><i style="width:${tot?ok/tot*100:0}%"></i></span></span>
       <span class="selo">${ok}/${tot}</span>`;
     b.onclick=()=>{ if(!lib){avisa('Termine ao menos uma fase do mundo anterior.');return} somToque();abreMundo(i) };
@@ -581,6 +895,18 @@ function abreMundo(m){
     b.onclick=()=>{ if(!lib){avisa('Conclua a fase anterior.');return} somToque();abreFase(m,i) };
     el.appendChild(b);
   });
+  if(MUNDOS[m].auto){
+    const pronta = !MUNDOS[m].fases.length || completa(m,MUNDOS[m].fases.length-1);
+    const b=document.createElement('button');
+    b.className='cartao';b.style.opacity=pronta?1:.5;
+    b.innerHTML=`<span class="num">+</span><span class="info">
+      <span class="nome">Criar nova fase</span>
+      <span class="desc">${pronta?'Monta uma rodada inédita com o banco de palavras':'Termine a última rodada primeiro'}</span></span>
+      <span class="selo">&#8734;</span>`;
+    b.onclick=()=>{ if(!pronta){avisa('Termine a última rodada primeiro.');return}
+      somToque(); novaFase(1)?abreMundo(m):avisa('Não consegui montar agora. Tente de novo.') };
+    el.appendChild(b);
+  }
   moedas();tela('tela-fases');
 }
 
@@ -740,8 +1066,9 @@ function fimDeFase(){
   $('fim-palavra').textContent=J.fase.secreta;
   $('fim-verso').textContent=J.fase.verso;
   $('fim-premio').textContent='+ '+GANHO_FASE+' moedas';
+  if(MUNDOS[J.m].auto && J.f>=MUNDOS[J.m].fases.length-1) novaFase(1);
   const ultima = J.f>=MUNDOS[J.m].fases.length-1;
-  $('fim-proxima').textContent = ultima?'Escolher outro mundo':'Próxima fase';
+  $('fim-proxima').textContent = ultima?'Escolher outro mundo':(MUNDOS[J.m].auto?'Jogar a nova fase':'Próxima fase');
   $('veu-fim').classList.add('ativo');
 }
 
@@ -749,7 +1076,7 @@ function fimDeFase(){
 $('btn-ajustes').onclick=()=>{$('aj-som').textContent='Som: '+(S.som?'ligado':'desligado');$('veu-ajustes').classList.add('ativo')};
 $('aj-fechar').onclick=()=>$('veu-ajustes').classList.remove('ativo');
 $('aj-som').onclick=function(){S.som=!S.som;gravar();this.textContent='Som: '+(S.som?'ligado':'desligado')};
-$('aj-zerar').onclick=()=>{ if(confirm('Apagar todo o progresso e voltar ao início?')){S={moedas:300,prog:{},som:S.som};gravar();pintaMundos();$('veu-ajustes').classList.remove('ativo');avisa('Progresso zerado.')} };
+$('aj-zerar').onclick=()=>{ if(confirm('Apagar todo o progresso e voltar ao início?')){S={moedas:300,prog:{},som:S.som,geradas:[]};sincronizaAuto();gravar();pintaMundos();$('veu-ajustes').classList.remove('ativo');avisa('Progresso zerado.')} };
 $('voltar-mundos').onclick=()=>{somToque();pintaMundos();tela('tela-mundos')};
 $('voltar-fases').onclick=()=>{somToque();abreMundo(J?J.m:mundoAtual)};
 $('dica-ant').onclick=()=>navega(-1);
@@ -792,7 +1119,9 @@ try{
   document.head.appendChild(l);
 }catch(e){}
 
+sincronizaAuto();
 pintaMundos();
+carregaBanco();
 </script>
 </body>
 </html>
