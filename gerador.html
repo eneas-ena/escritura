@@ -35,15 +35,15 @@ button:disabled{opacity:.5;cursor:default}
 .custo{font-size:15px;color:var(--suave);font-style:italic;text-align:center;margin-top:10px}
 h2{font-family:'Cinzel',serif;font-size:14px;letter-spacing:.1em;color:var(--suave);margin:26px 0 10px}
 </style>
+<script src="porteiro.js" data-app="Banco de Palavras" data-protege="https://palavras-biblia.eneaspr.workers.dev"></script>
 </head>
 <body>
 <div class="caixa">
   <h1>Banco de Palavras</h1>
   <div class="sub">Gerar com IA, revisar e aprovar. Só o que você aprovar entra no jogo.</div>
+  <div style="text-align:right;margin:-4px 0 8px;font-size:12px"><a href="#" onclick="event.preventDefault();porteiroSair()" style="color:inherit;opacity:.7">Sair</a></div>
 
   <div id="config">
-    <label>PIN de administração</label>
-    <input id="pin" type="password" inputmode="numeric" placeholder="informe o PIN">
     <label>Tema das novas palavras</label>
     <input id="tema" value="conhecimento geral da Bíblia" placeholder="ex.: profetas menores, festas de Israel">
     <div class="linha">
@@ -67,7 +67,7 @@ h2{font-family:'Cinzel',serif;font-size:14px;letter-spacing:.1em;color:var(--sua
 const WORKER = 'https://palavras-biblia.eneaspr.workers.dev';
 
 const $=id=>document.getElementById(id);
-const pin=()=>$('pin').value.trim();
+const pin=()=>'';   // o PIN saiu: o acesso agora é pelo login do Bispo (porteiro.js)
 
 async function chama(rota, corpo){
   const r = await fetch(WORKER+rota, {method:'POST',headers:{'content-type':'application/json'},
@@ -75,15 +75,13 @@ async function chama(rota, corpo){
   return r.json();
 }
 async function contar(){
-  if(!pin())return;
-  try{ const r=await fetch(WORKER+'/total?pin='+encodeURIComponent(pin()));
+  try{ const r=await fetch(WORKER+'/total');
        const d=await r.json(); $('total').value = d.total!=null? d.total : (d.erro||'—');
   }catch(e){ $('total').value='sem conexão' }
 }
-$('pin').addEventListener('change',contar);
+contar();
 
 $('btn-gerar').onclick=async()=>{
-  if(!pin()){alert('Informe o PIN.');return}
   const b=$('btn-gerar'); b.disabled=true; b.textContent='Gerando…';
   $('saida').innerHTML='';
   try{
